@@ -1,5 +1,7 @@
 import { Module } from "./nn_module";
-
+import {LinearFunction} from './functions_artisanal';
+import {Tensor} from './tensor';
+import {createFromSize as arrayFromSize} from './utils';
 export class AvgPooling2d extends Module {}
 
 export class Conv2d extends Module {
@@ -30,13 +32,21 @@ export class GroupNorm extends Module {
         this.numChannels = numChannels;
     }
 }
-
 export class Linear extends Module {
     inChannels: number;
     outChannels: number;
+    weight: Tensor;
+    bias: Tensor;
+
     constructor(inChannels: number, outChannels: number) {
         super();
         this.inChannels = inChannels;
         this.outChannels = outChannels;
+        
+        this.weight = new Tensor(arrayFromSize([inChannels,outChannels]));
+        this.bias = new Tensor(new Array([outChannels]));
+    }
+    forward(input: Tensor): Tensor {
+        return LinearFunction.apply(input, this.weight, this.bias);
     }
 }
