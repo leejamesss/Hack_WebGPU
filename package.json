@@ -47,6 +47,7 @@
     "webpack-dev-server": "^4.13.3"
   },
   "dependencies": {
-    "@webgpu/types": "^0.1.31"
+    "@webgpu/types": "^0.1.32",
+    "itertools": "^2.1.1"
   }
 }

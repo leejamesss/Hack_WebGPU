@@ -1,6 +1,7 @@
 import { ones } from "./factories";
 import { LinearFunction } from "./functions";
 import { tensor, conv2d } from "./ops_artisanal";
+import { exp } from "./ops_opgen";
 import { Tensor } from "./tensor";
 
 test("create tensor with storage and dtype", () => {
@@ -257,3 +258,19 @@ test("batched conv2d", async () => {
         ],
     ]);
 });
+
+test("test broadcastTo", async () => {
+    const a = new Tensor([[1,2,3]], "float32"); // shape:[1,3] txpected to [1,2,3]*3
+    let targetShape = [3, 3];
+    let tmp = await a.broadcastTo(targetShape);
+    expect(tmp.shape).toEqual([3,3]);
+
+    const b = new Tensor([1],"float32");
+    targetShape = [4,4]; // expected to [[1]*4]*4
+    expect(await b.broadcastTo(targetShape)).toEqual([4,4])
+
+    const c = new Tensor([1,2,3],"float32"); // shape:[3], expected to [1,2,3]*3
+    targetShape = [3, 3];
+    tmp = await a.broadcastTo(targetShape);
+    expect(tmp.shape).toEqual([3,3]);
+})

@@ -13,7 +13,7 @@ import type { KernelConfigInput, KernelParamsInput } from "./kernel";
 import * as ops from "./ops_opgen";
 import * as aops from "./ops_artisanal";
 import { TensorBase } from "./tensor_base";
-import { createFromSize } from "./utils";
+import { product,range } from "./utils";
 
 export type TensorData = TensorArrayData | ATypedArray | UntypedStorage;
 
@@ -255,43 +255,43 @@ export class Tensor extends TensorBase {
         );
     }
 
-    broadcastTo(targetShape: Shape): Tensor {
+    async broadcastTo(targetShape: Shape): Promise<Tensor> {
         const inputShape = this.shape;
         const inputRank = inputShape.length;
         const targetRank = targetShape.length;
-    
+
         if (inputRank > targetRank) {
             throw new Error("Cannot broadcast to a smaller number of dimensions.");
         }
-    
-        // TODO: require performance boost
+        let expandedShape = inputShape.slice();
+        let newArray:any = await this.toArrayAsync();
+        console.log(newArray)
+        
+        if(targetRank >= 3){
+            throw new Error("Broadcasting to more than 2 dimensions is not supported yet.")
+        }
+
         // Rule 1: Expand dimensions without adding new ones
-        const expandedShape = inputShape.slice();
-        let newStrides = createFromSize(targetShape, 0);
-        if(inputRank == targetRank){
-        for (let i = inputRank - 1, j = targetRank - 1; i >= 0 && j >= 0; i--, j--) {
-            if (inputShape[i] === 1) {
-                expandedShape[j] = targetShape[j];
-            } else if (inputShape[i] !== targetShape[j]) {
-                throw new Error(
-                    `Cannot broadcast tensor of shape ${inputShape} to target shape ${targetShape}`
-                );
+        if(inputRank === targetRank){
+            if(targetRank === 2 && inputShape[0] === 1){
+                expandedShape[0] = targetShape[0]
+                for(let i=1;i<targetShape[0];i++){
+                    newArray[i] = newArray[0].slice()
+                }
             }
-        }
-        return this.withShape(expandedShape,newStrides);
+
+        console.log(expandedShape,newArray)
+        return new Tensor(newArray, this.dtype, this.device,this.requiresGrad);
     }
-    
-        // Rule 2: Add dimensions and expand
-        const newShape = Array(targetRank).fill(1);
-        for (let i = inputRank - 1, j = targetRank - 1; i >= 0; i--, j--) {
-            newShape[j] = expandedShape[i];
+
+    // expand dimensions
+        let firstDim = shapeSize(targetShape) / shapeSize(inputShape);
+        expandedShape = [firstDim, ...expandedShape];
+        for(let i=1;i<firstDim;i++){
+            newArray[i] = newArray[0];
         }
     
-        for (let i = inputRank - 1, j = targetRank - 1; i >= 0; i--, j--) {
-            newStrides[j] = this.strides[i];
-        }
-    
-        return this.withShape(newShape, newStrides);
+        return new Tensor(newArray, this.dtype, this.device,this.requiresGrad);
     }
     
 
