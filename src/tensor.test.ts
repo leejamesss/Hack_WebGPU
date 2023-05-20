@@ -266,8 +266,9 @@ test("test broadcastTo", async () => {
     expect(tmp.shape).toEqual([3,3]);
 
     const b = new Tensor([1],"float32");
-    targetShape = [4,4]; // expected to [[1]*4]*4
-    expect(await b.broadcastTo(targetShape)).toEqual([4,4])
+    targetShape = [4,4]; // [1] expected to [[1]*4]*4
+    tmp =await b.broadcastTo(targetShape);
+    expect(tmp.shape).toEqual([4,4])
 
     const c = new Tensor([1,2,3],"float32"); // shape:[3], expected to [1,2,3]*3
     targetShape = [3, 3];

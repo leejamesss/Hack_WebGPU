@@ -15,7 +15,7 @@ export function createFromSize(sizes: number[], default_value: number = 0): any 
 export function range(size: Number, startAt = 0) {
     return [...Array(size).keys()].map(i => i + startAt);
 }
-export function* product<T> (pools: T[][]): IterableIterator<T[]> {
+export function* product<T> (...pools: T[][]): IterableIterator<T[]> {
 // function* product (...pools) {
   let i = 0;
   const indexes = new Array(pools.length).fill(0)
