@@ -64,10 +64,16 @@ export function mm(input: Tensor, other: Tensor): Tensor {
     if (shouldCreateGradient(input, other)) {
         throw new Error("mm gradient not supported yet");
     } else {
-        if (input.shape.length !== 2 || other.shape.length !== 2) {
+        if (input.shape.length !== 2 && other.shape.length !== 2) {
             throw new Error(
                 `Expected 2D tensors, got ${input.shape} and ${other.shape}`
             );
+        }
+        if(input.shape.length == 1){
+            input = input.broadcastTo([1,...input.shape]);
+        }
+        if(other.shape.length == 1){
+            other = other.broadcastTo([...other.shape,1]);
         }
         if (input.shape[1] !== other.shape[0]) {
             throw new Error(

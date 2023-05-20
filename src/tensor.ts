@@ -167,7 +167,11 @@ export class Tensor extends TensorBase {
     }
     async toArrayAsync(): Promise<TensorArrayData> {
         await this.storage.mapReadAsync();
-        const data = this.storage.getTypedArray(this.dtype);
+        return this.toArray();
+    }
+
+    toArray():TensorArrayData{
+                const data = this.storage.getTypedArray(this.dtype);
         const shape = this.shape;
         const strides = this.strides;
         if (shape.length == 0 || (shape.length == 1 && shape[0] == 1)) {
@@ -259,7 +263,7 @@ export class Tensor extends TensorBase {
         );
     }
 
-    async broadcastTo(targetShape: Shape): Promise<Tensor> {
+    broadcastTo(targetShape: Shape): Tensor {
         if (!this.canBroadcastTo(targetShape)) {
             throw new Error(
                 "Can't broadcast shape:" +
@@ -274,7 +278,7 @@ export class Tensor extends TensorBase {
 
         let expandedShape = inputShape.slice();
         let RankDelta = targetRank - inputRank;
-        let newArray: any = await this.toArrayAsync();
+        let newArray: any = this.toArray();
 
         // Expand dimensions by adding ones to the left of shape
         if (RankDelta > 0) {

@@ -19,6 +19,7 @@ export class Conv2d extends Module {
         this.inChannels = inChannels;
         this.outChannels = outChannels;
     }
+
 }
 
 export class ConvTranspose2d extends Module {}
@@ -43,7 +44,7 @@ export class Linear extends Module {
         this.inChannels = inChannels;
         this.outChannels = outChannels;
         
-        this.weight = new Tensor(arrayFromSize([inChannels,outChannels]));
+        this.weight = new Tensor(arrayFromSize([outChannels,inChannels]));
         this.bias = new Tensor(new Array([outChannels]));
     }
     forward(input: Tensor): Tensor {

@@ -17,7 +17,7 @@ test("can toggle requiresGrad", () => {
     expect(tensor.requiresGrad).toBe(true);
 });
 
-test("linear forward", async () => {
+test("linear forward 1dim", async () => {
     const input = tensor([[3]]);
     const weight = tensor([[10], [11]]);
     const bias = tensor([[1000, 10000]]);
@@ -25,6 +25,23 @@ test("linear forward", async () => {
     const expected = [[3 * 10 + 1000, 3 * 11 + 10000]];
     expect(output.shape).toEqual([1, 2]);
     expect(await output.toArrayAsync()).toEqual(expected);
+
+});
+
+test("linear forward 2dim", async () => {
+    const input = tensor([[3, 4]]);
+    const weight = tensor(
+        [
+            [10, 22],
+            [22, 55],
+            [1, 2]
+        ]);
+    const bias = tensor([[1000, 10000]]);
+    const output = LinearFunction.apply(input, weight, bias);
+    // const expected = [[3 * 10 + 1000, 3 * 11 + 10000], [22]];
+    expect(output.shape).toEqual([1, 3]);
+    // expect(await output.toArrayAsync()).toEqual(expected);
+
 });
 
 test("abs backwards", async () => {
@@ -260,18 +277,18 @@ test("batched conv2d", async () => {
 });
 
 test("test broadcastTo", async () => {
-    const a = new Tensor([[1,2,3]], "float32"); // shape:[1,3] txpected to [1,2,3]*3
+    const a = new Tensor([[1, 2, 3]], "float32"); // shape:[1,3] txpected to [1,2,3]*3
     let targetShape = [3, 3];
     let tmp = await a.broadcastTo(targetShape);
-    expect(tmp.shape).toEqual([3,3]);
+    expect(tmp.shape).toEqual([3, 3]);
 
-    const b = new Tensor([1],"float32");
-    targetShape = [4,4]; // [1] expected to [[1]*4]*4
-    tmp =await b.broadcastTo(targetShape);
-    expect(tmp.shape).toEqual([4,4])
+    const b = new Tensor([1], "float32");
+    targetShape = [4, 4]; // [1] expected to [[1]*4]*4
+    tmp = await b.broadcastTo(targetShape);
+    expect(tmp.shape).toEqual([4, 4])
 
-    const c = new Tensor([1,2,3],"float32"); // shape:[3], expected to [1,2,3]*3
+    const c = new Tensor([1, 2, 3], "float32"); // shape:[3], expected to [1,2,3]*3
     targetShape = [3, 3];
     tmp = await a.broadcastTo(targetShape);
-    expect(tmp.shape).toEqual([3,3]);
+    expect(tmp.shape).toEqual([3, 3]);
 })

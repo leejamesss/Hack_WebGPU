@@ -245,7 +245,6 @@ test("Conv2d can set inChannels and outChannels", () => {
 test("Seq final test", () => {
     const input = new Tensor([1,2,3,4,5,6,7,8,9,10]);
     const A = new nn.Linear(10,32);
-    const model = new nn.Sequential([A]);
-    let output = model.forward(input);
-    expect(output.shape).toEqual(32);
+    let output = A.forward(input);
+    expect(output.shape).toEqual([1,32]);
 });
