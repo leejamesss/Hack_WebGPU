@@ -121,9 +121,10 @@ export function mm(input: Tensor, other: Tensor): Tensor {
     }
 }
 
+// transposition for matrix
 export function t(input: Tensor): Tensor {
     if (input.shape.length !== 2) {
-        throw new Error(`Expected 2D tensor, got ${input.shape}`);
+        throw new Error(`Expected 2D tensor, got ${input.shape} ${input}}`);
     }
     if (shouldCreateGradient(input)) {
         throw new Error("t gradient not supported yet");

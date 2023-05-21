@@ -1,13 +1,27 @@
 
+
 export function createFromSize(sizes: number[], default_value: number = 0): any {
   if (sizes.length === 0) {
-    return 0;
+    return default_value;
   }
   const size = sizes[0];
   const rest = sizes.slice(1);
   const arr = new Array(size).fill(default_value);
   for (let i = 0; i < size; i++) {
-    arr[i] = createFromSize(rest);
+    arr[i] = createFromSize(rest,default_value);
+  }
+  return arr;
+}
+
+export function createFromSizeUniform(sizes: number[], min: number = -1,max: number=1): any {
+  if (sizes.length === 0) {
+    return min+ (max-min)*Math.random();
+  }
+  const size = sizes[0];
+  const rest = sizes.slice(1);
+  const arr = new Array(size).fill(undefined);
+  for (let i = 0; i < size; i++) {
+    arr[i] = createFromSizeUniform(rest,min,max);
   }
   return arr;
 }

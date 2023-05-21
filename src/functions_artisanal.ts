@@ -5,6 +5,9 @@ import {
     GradientFunctionOutput,
 } from "./autograd";
 import type { Tensor } from "./tensor";
+function containsNan(arr:any){
+    return arr.some((item:any) => Array.isArray(item) ? containsNan(item) : Number.isNaN(item));
+}
 
 export class LinearFunction extends AutoFunction {
     static forward(inputs: FunctionInput[]): Tensor {
@@ -13,6 +16,12 @@ export class LinearFunction extends AutoFunction {
         if (bias) {
             output.add_(bias);
         }
+        if(containsNan(input.toArray())){
+            throw new Error("fucked")
+        }
+        // console.log(input.toArray())
+        // console.log(weight.toArray())
+        // console.log(bias.toArray())
         return output;
     }
     static setupContext(
@@ -27,7 +36,7 @@ export class LinearFunction extends AutoFunction {
         ctx: GradientContext,
         gradOutput: Tensor
     ): GradientFunctionOutput[] {
-        const [input, weight, bias] = ctx.savedTensors;
+        let [input, weight, bias] = ctx.savedTensors;
         let inputGrad: Tensor | null = null;
         let weightGrad: Tensor | null = null;
         let biasGrad: Tensor | null = null;
@@ -35,6 +44,9 @@ export class LinearFunction extends AutoFunction {
             inputGrad = gradOutput.mm(weight);
         }
         if (ctx.needsInputGradient[1]) {
+            if(input.shape.length === 1){
+                input = input.broadcastTo([1,input.shape[0]])
+            }
             weightGrad = input.t().mm(gradOutput);
         }
         if (ctx.needsInputGradient[2]) {

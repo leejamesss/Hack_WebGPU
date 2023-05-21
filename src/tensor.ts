@@ -155,6 +155,21 @@ export class Tensor extends TensorBase {
         });
     }
 
+    squeeze(): Tensor {
+        let shape = this.shape;
+        while (shape.length > 1 && shape[0] === 1) {
+            shape.shift()
+        }
+        return new Tensor({
+            data: this.storage,
+            dtype: this.dtype,
+            device: this.device,
+            requiresGrad: this.requiresGrad,
+            shape,
+            strides: this.strides,
+        });
+    }
+
     get [Symbol.toStringTag]() {
         return "Tensor";
     }
@@ -170,8 +185,8 @@ export class Tensor extends TensorBase {
         return this.toArray();
     }
 
-    toArray():TensorArrayData{
-                const data = this.storage.getTypedArray(this.dtype);
+    toArray(): TensorArrayData {
+        const data = this.storage.getTypedArray(this.dtype);
         const shape = this.shape;
         const strides = this.strides;
         if (shape.length == 0 || (shape.length == 1 && shape[0] == 1)) {
@@ -267,9 +282,9 @@ export class Tensor extends TensorBase {
         if (!this.canBroadcastTo(targetShape)) {
             throw new Error(
                 "Can't broadcast shape:" +
-                    this.shape +
-                    " to target shape:" +
-                    targetShape
+                this.shape +
+                " to target shape:" +
+                targetShape
             );
         }
         const inputShape = this.shape;
@@ -313,12 +328,12 @@ export class Tensor extends TensorBase {
             }
 
         }
-            return new Tensor(
-                newArray,
-                this.dtype,
-                this.device,
-                this.requiresGrad
-            );
+        return new Tensor(
+            newArray,
+            this.dtype,
+            this.device,
+            this.requiresGrad
+        );
     }
 
     canBroadcastTo(targetShape: Shape): Boolean {
@@ -373,7 +388,7 @@ export class Tensor extends TensorBase {
         if (gradient) {
             grad = gradient;
         } else {
-            grad = ones(this.shape,this.dtype,this.device);
+            grad = ones(this.shape, this.dtype, this.device);
         }
         if (this.grad) {
             this.grad.add_(grad);
@@ -391,7 +406,6 @@ export class Tensor extends TensorBase {
                 continue;
             }
             const grad = grads[i];
-            console.log(grad?.shape)
             if (grad) {
                 input.backward(grad);
             } else {
@@ -428,6 +442,7 @@ export class Tensor extends TensorBase {
     mm(other: Tensor): Tensor {
         return aops.mm(this, other);
     }
+    // transposition
     t(): Tensor {
         return aops.t(this);
     }
