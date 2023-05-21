@@ -1,7 +1,7 @@
 import type { Deviceish } from "./device";
 import type { Dtype } from "./dtype";
 import { Tensor } from "./tensor";
-import { shouldCreateGradient } from "./autograd";
+import { ArtisanalFunction, AutoFunction, FunctionInput, GradientContext, GradientFunctionOutput, isTensor, shouldCreateGradient } from "./autograd";
 import type { TensorData, TensorSpec } from "./tensor";
 
 export function cat(inputs: Tensor[], dim: number): Tensor {
@@ -25,18 +25,11 @@ export function cat(inputs: Tensor[], dim: number): Tensor {
  *     However, this mode can only be used when `stride` is 1.
  * @returns 
  */
-export function conv2d(input: Tensor, weight: Tensor, bias?: Tensor, stride?: number | [number, number], padding?: number | [number, number] | "valid" | "same"): Tensor {
-    if (shouldCreateGradient(input, weight)) {
-        throw new Error("conv2d gradient not supported yet");
-    } else {
+export class Conv2dFunction extends ArtisanalFunction {
+    static forward(input: Tensor, weight: Tensor, bias?: Tensor, stride?: number | [number, number], padding?: number | [number, number] | "valid" | "same"): Tensor {
         if (input.shape.length !== 4 || weight.shape.length !== 4) {
             throw new Error(
                 `Expected image tensor, got ${input.shape} and kernel ${weight.shape}`
-            );
-        }
-        if (input.shape[1] !== weight.shape[1]) {
-            throw new Error(
-                `Expected number of chennels in input image to match number of channels in kernel, got ${input.shape} and ${weight.shape}`
             );
         }
         const params = {
@@ -57,6 +50,38 @@ export function conv2d(input: Tensor, weight: Tensor, bias?: Tensor, stride?: nu
             [[params.batchSize, params.outputChannels, params.outputHeight, params.outputWidth]],
             weight
         )[0];
+
+    }
+
+    static backward(
+        ctx: GradientContext,
+        outputGrad: Tensor
+    ): GradientFunctionOutput[] {
+        const [input,weight] = ctx.savedTensors as [Tensor,Tensor];
+            const params = {
+            batchSize: input.shape[0],
+            inputChannels: input.shape[1],
+            outputChannels: weight.shape[0],
+            inputHeight: input.shape[2],
+            inputWidth: input.shape[3],
+            kernelHeight: weight.shape[2],
+            kernelWidth: weight.shape[3],
+            outputHeight: input.shape[2] - weight.shape[2] + 1,
+            outputWidth: input.shape[3] - weight.shape[3] + 1,
+        };
+        return input.runKernel(
+            "conv2dGrad",
+            { dtype: input.dtype },
+            params,
+            [[params.batchSize, params.outputChannels, params.outputHeight, params.outputWidth]],
+            weight
+        );
+    }
+
+    static apply(input: Tensor, weight: Tensor, bias?: Tensor, stride?: number | [number, number], padding?: number | [number, number] | "valid" | "same"): Tensor {
+        const allInputs = [input, weight]; //TODO: add bias
+        const output = this.forward(input,weight,bias,stride,padding);
+        return this.applyGrad(allInputs, output);
     }
 }
 
@@ -69,11 +94,11 @@ export function mm(input: Tensor, other: Tensor): Tensor {
                 `Expected 2D tensors, got ${input.shape} and ${other.shape}`
             );
         }
-        if(input.shape.length == 1){
-            input = input.broadcastTo([1,...input.shape]);
+        if (input.shape.length == 1) {
+            input = input.broadcastTo([1, ...input.shape]);
         }
-        if(other.shape.length == 1){
-            other = other.broadcastTo([...other.shape,1]);
+        if (other.shape.length == 1) {
+            other = other.broadcastTo([...other.shape, 1]);
         }
         if (input.shape[1] !== other.shape[0]) {
             throw new Error(

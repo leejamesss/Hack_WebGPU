@@ -373,12 +373,7 @@ export class Tensor extends TensorBase {
         if (gradient) {
             grad = gradient;
         } else {
-            if (!this.isScalar) {
-                throw new Error(
-                    `Gradient can only be implicitly created for scalar outputs`
-                );
-            }
-            grad = ones(1);
+            grad = ones(this.shape,this.dtype,this.device);
         }
         if (this.grad) {
             this.grad.add_(grad);
@@ -396,6 +391,7 @@ export class Tensor extends TensorBase {
                 continue;
             }
             const grad = grads[i];
+            console.log(grad?.shape)
             if (grad) {
                 input.backward(grad);
             } else {

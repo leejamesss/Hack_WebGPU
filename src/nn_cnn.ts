@@ -2,7 +2,7 @@ import { Module } from "./nn_module";
 import {LinearFunction} from './functions_artisanal';
 import {Tensor} from './tensor';
 import {createFromSize as arrayFromSize} from './utils';
-import { conv2d } from "./ops_artisanal";
+import { Conv2dFunction } from "./ops_artisanal";
 import { Dtype } from "./dtype";
 export class AvgPooling2d extends Module {}
 
@@ -35,10 +35,11 @@ export class Conv2d extends Module {
         }else{
             this.weight = new Tensor(arrayFromSize([outChannels,inChannels,kernelSize,kernelSize]))
         }
+        this.weight.requiresGrad = true
 
     }
         forward(input: Tensor): Tensor {
-        return conv2d(input, this.weight, undefined, this.stride, this.padding)
+        return Conv2dFunction.apply(input, this.weight, undefined, this.stride, this.padding)
     }    
 
 }
@@ -60,13 +61,13 @@ export class Linear extends Module {
     weight: Tensor;
     bias: Tensor;
 
-    constructor(inChannels: number, outChannels: number) {
+    constructor(inChannels: number, outChannels: number, dtype:Dtype) {
         super();
         this.inChannels = inChannels;
         this.outChannels = outChannels;
         
-        this.weight = new Tensor(arrayFromSize([outChannels,inChannels]));
-        this.bias = new Tensor(new Array([outChannels]));
+        this.weight = new Tensor(arrayFromSize([outChannels,inChannels]),dtype);
+        this.bias = new Tensor(new Array([outChannels]),dtype);
     }
     forward(input: Tensor): Tensor {
         return LinearFunction.apply(input, this.weight, this.bias);

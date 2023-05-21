@@ -104,6 +104,109 @@ export const kernels: { [name: string]: KernelSpec } = {
     }
 `
     },
+    conv2dGrad: {
+        name: "conv2dGrad",
+        config: [
+            {
+                name: "dtype",
+            },
+        ],
+        parameters: [
+            {
+                name: "batchSize",
+                shaderType: "u32",
+            },
+            {
+                name: "inputChannels",
+                shaderType: "u32",
+            },
+            {
+                name: "outputChannels",
+                shaderType: "u32",
+            },
+            {
+                name: "inputHeight",
+                shaderType: "u32",
+            },
+            {
+                name: "inputWidth",
+                shaderType: "u32",
+            },
+            {
+                name: "kernelHeight",
+                shaderType: "u32",
+            },
+            {
+                name: "kernelWidth",
+                shaderType: "u32",
+            },
+            {
+                name: "outputHeight",
+                shaderType: "u32",
+            },
+            {
+                name: "outputWidth",
+                shaderType: "u32",
+            },
+        ],
+        inputs: [
+            {
+                name: "input",
+                shaderType: "array<f32>",
+            },
+            {
+                name: "weight",
+                shaderType: "array<f32>",
+            },
+        ],
+        outputs: [
+            {
+                name: "output",
+                shaderType: "array<f32>",
+                size: "batchSize * outputChannels * outputHeight * outputWidth",
+            },
+        ],
+        workgroupSize: [4, 4, 1],
+        workgroupCount: ["outputWidth/4", "outputHeight/4", 1],
+        shader: `
+    if (global_id.x >= parameters.outputWidth || global_id.y >= parameters.outputHeight) {
+        return;
+    }
+    // input shape = [B, C, H, W]
+    for (var batch = 0u; batch < parameters.batchSize; batch++) {
+        for (var outputChannel = 0u; outputChannel < parameters.outputChannels; outputChannel++) {
+            var result = 0.0;
+            // Do the convolution
+            for (var inputChannel = 0u; inputChannel < parameters.inputChannels; inputChannel++) {
+                for (var kernelY = 0u; kernelY < parameters.kernelHeight; kernelY++) {
+                    for (var kernelX = 0u; kernelX < parameters.kernelWidth; kernelX++) {
+                        var inputY = global_id.y + kernelY;
+                        var inputX = global_id.x + kernelX;
+                        var inputIndex =
+                            batch * parameters.inputChannels * parameters.inputHeight * parameters.inputWidth +
+                            inputChannel * parameters.inputHeight * parameters.inputWidth +
+                            inputY * parameters.inputWidth +
+                            inputX;
+                        var kernelIndex =
+                            outputChannel * parameters.inputChannels * parameters.kernelHeight * parameters.kernelWidth +
+                            inputChannel * parameters.kernelHeight * parameters.kernelWidth +
+                            kernelY * parameters.kernelWidth +
+                            kernelX;
+                        result = result + input[inputIndex] * weight[kernelIndex];
+                    }
+                }
+            }
+            // Output
+            let outputIndex = 
+                batch * parameters.outputChannels * parameters.outputHeight * parameters.outputWidth +
+                outputChannel * parameters.outputHeight * parameters.outputWidth +
+                global_id.y * parameters.outputWidth +
+                global_id.x;
+            output[outputIndex] = result;
+        }
+    }
+`
+    },
     mm: {
         name: "mm",
         config: [
