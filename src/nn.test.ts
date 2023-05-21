@@ -1,6 +1,7 @@
 import { zeros } from './factories';
 import * as nn from './nn';
 import { Tensor } from './tensor';
+import { createFromSize } from './utils';
 
 class A extends nn.Module {
     b: B;
@@ -241,8 +242,11 @@ test("Conv2d can set inChannels and outChannels", () => {
     const conv2d = new nn.Conv2d(3, 256, 3, 1, 0, "float32");
     expect(conv2d.inChannels).toBe(3);
     expect(conv2d.outChannels).toBe(256);
+    let input = new Tensor(createFromSize([1,3,24,24]));
+    // console.log(conv2d.forward(input).toArray());
+    
 });
-test("Seq final test", () => {
+test("Linear test", () => {
     const input = new Tensor([1,2,3,4,5,6,7,8,9,10]);
     const A = new nn.Linear(10,32);
     let output = A.forward(input);
