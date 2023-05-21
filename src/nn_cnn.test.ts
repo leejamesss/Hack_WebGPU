@@ -14,13 +14,13 @@ test("Conv2d Backward", () => {
 
 test("Linear training", () => {
     const input = new Tensor([0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1], "float32");
-    const target = new Tensor([123], "float32")
-    const linear = new nn.Linear(10, 256, "float32")
-    const linear2 = new nn.Linear(256, 1, "float32")
+    const target = new Tensor([[123]], "float32")
+    const linear = new nn.Linear(10, 20, "float32")
+    const linear2 = new nn.Linear(20, 1, "float32")
     input.requiresGrad = true;
     for (let i = 0; i < 100; i++) {
         let t1 = linear.forward(input)
-        let output = linear2.forward(t1).squeeze();
+        let output = linear2.forward(t1);
         // console.log(`t1: ${t1.toArray()},output: ${output.toArray()}`)
         let loss = (output.sub(target)).square();
         console.log("loss: ",loss.toArray())
@@ -31,5 +31,23 @@ test("Linear training", () => {
         linear2.BP()
 
     }
+});
+
+
+test("Linear training", () => {
+    const input = new Tensor([1], "float32");
+    const target = new Tensor([[123]], "float32")
+    const linear = new nn.Linear(1, 1, "float32")
+    input.requiresGrad = true;
+    // for (let i = 0; i < 200; i++) {
+    //     let t1 = linear.forward(input)
+    //     let loss = (t1.sub(target)).square();
+    //     console.log("loss: ",loss.toArray())
+
+    //     // start update
+    //     loss.backward()
+    //     linear.BP()
+
+    // }
 });
 

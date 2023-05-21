@@ -1,10 +1,11 @@
 import { Module } from "./nn_module";
 import {LinearFunction} from './functions_artisanal';
 import {Tensor} from './tensor';
-import {createFromSize as arrayFromSize} from './utils';
+import {createFromSize as arrayFromSize, createFromSize} from './utils';
 import { Conv2dFunction } from "./ops_artisanal";
 import { createFromSizeUniform} from './utils'
 import { Dtype } from "./dtype";
+import { ones } from "./factories";
 export class AvgPooling2d extends Module {}
 
 export class Conv2d extends Module {
@@ -77,19 +78,21 @@ export class Linear extends Module {
         return LinearFunction.apply(input, this.weight, this.bias);
     }
 
-    BP(delta:number = 0.005){
+    BP(delta:number = 0.0005){
         if(!this.weight.grad){
             throw new Error('weight not found')
         }
         if(!this.bias.grad){
             throw new Error('bias not found')
         }
-        this.weight = this.weight.add(this.weight.grad,delta)
-        console.log(this.bias.grad)
+        // console.log(this.weight.grad.toArray())
+        this.weight.grad = this.weight.grad.mul(new Tensor(createFromSize(this.weight.grad.shape,delta)))
+        // console.log(this.weight.grad.toArray())
+        this.weight = this.weight.sub(this.weight.grad)
+        // console.log(this.bias.grad)
         // this.bias = this.bias.add(this.bias.grad,delta)
         this.weight.grad = null
         this.bias.grad = null
-        
     }
 }
 

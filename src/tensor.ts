@@ -379,6 +379,7 @@ export class Tensor extends TensorBase {
     }
 
     backward(gradient?: Tensor): void {
+        // console.log("currently backward tensor: ", this.shape)
         if (!this.requiresGrad) {
             throw new Error(
                 `Cannot call backward on a tensor that does not require gradients`
